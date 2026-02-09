@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Commission Calculator</title>
+  <style>
+    :root{
+      --bg:#0b1020;
+      --stroke:rgba(255,255,255,0.11);
+      --stroke2:rgba(255,255,255,0.09);
+      --glass:rgba(255,255,255,0.08);
+      --glass2:rgba(255,255,255,0.06);
+      --text:rgba(255,255,255,0.92);
+      --muted:rgba(255,255,255,0.62);
+      --muted2:rgba(255,255,255,0.46);
+      --good:rgba(180,255,210,0.95);
+      --shadow:0 18px 45px rgba(0,0,0,0.45);
+      --shadow2:0 10px 24px rgba(0,0,0,0.28);
+      --shadowSoft:0 10px 22px rgba(0,0,0,0.18);
+      --radius:22px;
+      --radius2:16px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background:
+        radial-gradient(1200px 600px at 18% -10%, rgba(120,170,255,0.20), transparent 60%),
+        radial-gradient(900px 500px at 92% 0%, rgba(120,255,210,0.10), transparent 55%),
+        radial-gradient(700px 600px at 50% 120%, rgba(255,190,120,0.06), transparent 55%),
+        var(--bg);
+      color:var(--text);
+      padding: calc(14px + env(safe-area-inset-top)) 14px calc(20px + env(safe-area-inset-bottom)) 14px;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      overscroll-behavior-y: none;
+    }
+    .wrap{ width:min(560px, 100%); margin:0 auto; }
+
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.05));
+      border:1px solid var(--stroke);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+
+    /* Header with compact-on-scroll behavior */
+    .header{
+      position: sticky;
+      top: env(safe-area-inset-top);
+      z-index: 30;
+      padding: 14px 14px 12px 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      background: linear-gradient(180deg, rgba(11,16,32,0.72), rgba(11,16,32,0.50));
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+    .header.compact{
+      padding: 10px 14px 10px 14px;
+    }
+    .title{
+      font-size: 18px;
+      font-weight: 950;
+      letter-spacing: 0.2px;
+      transition: font-size .18s ease, opacity .18s ease;
+    }
+    .header.compact .title{
+      font-size: 16px;
+      opacity: 0.92;
+    }
+    .chip{
+      font-size: 12px;
+      font-weight: 950;
+      color: rgba(255,255,255,0.84);
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.11);
+      padding: 6px 10px;
+      border-radius: 999px;
+      user-select:none;
+      white-space:nowrap;
+      transition: transform .18s ease, opacity .18s ease;
+    }
+    .header.compact .chip{
+      opacity: 0.70;
+      transform: scale(0.98);
+    }
+
+    .content{ padding: 12px 14px 14px 14px; }
+
+    /* Sticky hero */
+    .heroWrap{
+      position: sticky;
+      top: calc(env(safe-area-inset-top) + 58px);
+      z-index: 20;
+      margin-bottom: 12px;
+    }
+    .hero{
+      background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.055));
+      border: 1px solid var(--stroke2);
+      border-radius: var(--radius);
+      padding: 14px 14px;
+      box-shadow: var(--shadow2);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      transform: translateZ(0);
+    }
+    .kicker{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing:0.22px;
+      margin-bottom: 10px;
+      flex-wrap:wrap;
+    }
+
+    /* Typographic hierarchy (iOS-like) */
+    .amount{
+      font-size: 46px;
+      font-weight: 1000;
+      letter-spacing: -0.8px;
+      line-height:1.03;
+      color: rgba(255,255,255,0.94);
+      font-variant-numeric: tabular-nums;
+    }
+    @media (max-width: 380px){ .amount{font-size: 40px} }
+
+    .subpill{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-top: 10px;
+      flex-wrap:wrap;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.11);
+      background: rgba(255,255,255,0.055);
+      color: rgba(255,255,255,0.84);
+      font-size: 12px;
+      font-weight: 900;
+      white-space:nowrap;
+    }
+    .pill b{
+      color: var(--good);
+      font-weight: 950;
+      font-variant-numeric: tabular-nums;
+    }
+    .miniTag{
+      color: rgba(255,255,255,0.68);
+      font-weight: 900;
+      font-size: 12px;
+      background: rgba(255,255,255,0.045);
+      border: 1px solid rgba(255,255,255,0.09);
+      padding: 8px 10px;
+      border-radius: 999px;
+      white-space:nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+
+    label{
+      display:block;
+      font-size: 12px;
+      color: var(--muted);
+      margin: 0 0 8px 2px;
+      letter-spacing:0.22px;
+      font-weight: 950;
+    }
+    .field{
+      background: rgba(255,255,255,0.045);
+      border: 1px solid rgba(255,255,255,0.11);
+      border-radius: var(--radius2);
+      padding: 12px 12px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin-bottom: 12px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .prefix{
+      color: rgba(255,255,255,0.68);
+      font-weight: 950;
+      font-size: 13px;
+      padding: 6px 10px;
+      background: rgba(255,255,255,0.045);
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 12px;
+      user-select:none;
+      white-space:nowrap;
+    }
+    input, select, button{
+      font-family: inherit;
+    }
+    input{
+      width:100%;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-size: 16px;
+      font-weight: 900;
+      font-variant-numeric: tabular-nums;
+    }
+    select{ appearance:none; }
+    .chev{ opacity:0.60; font-size:12px; user-select:none; }
+
+    /* Segmented control (softer & more iOS) */
+    .seg{
+      display:flex;
+      gap:6px;
+      padding: 6px;
+      background: rgba(255,255,255,0.042);
+      border: 1px solid rgba(255,255,255,0.11);
+      border-radius: 999px;
+      margin-bottom: 12px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .seg button{
+      flex: 1 1 0;
+      border: none;
+      border-radius: 999px;
+      padding: 10px 10px;
+      background: transparent;
+      color: rgba(255,255,255,0.74);
+      font-weight: 950;
+      font-size: 13px;
+      letter-spacing: 0.22px;
+      cursor:pointer;
+      user-select:none;
+      transition: background .18s ease, color .18s ease, box-shadow .18s ease, transform .08s ease;
+    }
+    .seg button:active{ transform: scale(0.99); }
+    .seg button.active{
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.94);
+      box-shadow: var(--shadowSoft);
+    }
+
+    /* Breakdown hierarchy */
+    .rows{
+      margin-top: 12px;
+      border-top: 1px solid rgba(255,255,255,0.07);
+      padding-top: 6px;
+    }
+    .row{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.055);
+    }
+    .row:last-child{border-bottom:none}
+    .row .l{
+      color: var(--muted2);
+      font-size: 12.5px;
+      font-weight: 900;
+      letter-spacing:0.18px;
+    }
+    .row .r{
+      color: rgba(255,255,255,0.90);
+      font-size: 13px;
+      font-weight: 900;
+      text-align:right;
+      white-space:nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+    .row.strong .l{ color: var(--muted); }
+    .row.strong .r{
+      font-size: 14px;
+      font-weight: 950;
+      color: rgba(255,255,255,0.93);
+    }
+
+    /* Lightweight feedback (not flicker while typing) */
+    .flash{
+      animation: flash 220ms ease;
+    }
+    @keyframes flash{
+      0%{ box-shadow: 0 0 0 rgba(0,0,0,0); transform: translateY(0); }
+      45%{ box-shadow: 0 0 0 999px rgba(120,255,210,0.022) inset; transform: translateY(-1px); }
+      100%{ box-shadow: 0 0 0 rgba(0,0,0,0); transform: translateY(0); }
+    }
+
+    /* iOS-style picker sheet */
+    .sheetMask{
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .18s ease;
+      z-index: 60;
+    }
+    .sheetMask.show{
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .sheet{
+      position: fixed;
+      left: 0; right: 0;
+      bottom: calc(-420px - env(safe-area-inset-bottom));
+      background: rgba(17,22,40,0.78);
+      border-top: 1px solid rgba(255,255,255,0.10);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top-left-radius: 22px;
+      border-top-right-radius: 22px;
+      box-shadow: 0 -18px 60px rgba(0,0,0,0.55);
+      transition: transform .22s ease;
+      transform: translateY(0);
+      z-index: 61;
+    }
+    .sheet.show{
+      transform: translateY(calc(-420px - env(safe-area-inset-bottom)));
+    }
+    .sheetInner{
+      height: 420px;
+      padding: 10px 12px calc(14px + env(safe-area-inset-bottom)) 12px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .sheetTop{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding: 8px 6px;
+    }
+    .grab{
+      width: 42px;
+      height: 5px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.20);
+      margin: 0 auto;
+    }
+    .sheetTitle{
+      font-size: 13px;
+      font-weight: 950;
+      letter-spacing: 0.22px;
+      color: rgba(255,255,255,0.88);
+    }
+    .sheetBtn{
+      border:none;
+      background: rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.90);
+      font-weight: 950;
+      font-size: 13px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.10);
+      cursor:pointer;
+      user-select:none;
+    }
+    .sheetList{
+      overflow:auto;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(255,255,255,0.04);
+    }
+    .opt{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding: 14px 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      font-weight: 950;
+      letter-spacing: 0.18px;
+      color: rgba(255,255,255,0.92);
+      cursor:pointer;
+      user-select:none;
+      font-variant-numeric: tabular-nums;
+    }
+    .opt:last-child{border-bottom:none}
+    .opt small{
+      color: rgba(255,255,255,0.62);
+      font-weight: 900;
+    }
+    .check{
+      opacity: 0;
+      transform: scale(0.9);
+      transition: opacity .14s ease, transform .14s ease;
+      color: rgba(180,255,210,0.95);
+      font-weight: 1000;
+    }
+    .opt.selected .check{
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* Charge field becomes tappable button */
+    .tapField{
+      cursor:pointer;
+      user-select:none;
+    }
+    .tapValue{
+      width:100%;
+      font-size: 16px;
+      font-weight: 950;
+      font-variant-numeric: tabular-nums;
+    }
+    .disabled{
+      opacity: 0.70;
+      cursor:not-allowed;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="header" id="header">
+        <div class="title">Commission Calculator</div>
+        <div class="chip" id="chipTag">EPF • 3.0%</div>
+      </div>
+
+      <div class="content">
+
+        <div class="heroWrap">
+          <div class="hero" id="hero">
+            <div class="kicker">
+              <span>This Deal Commission</span>
+              <span id="rateTag">—</span>
+            </div>
+            <div class="amount" id="commBig">RM 0.00</div>
+            <div class="subpill">
+              <div class="pill">Net: <b id="netPill">RM 0.00</b></div>
+              <div class="miniTag" id="pscTag">PSC —</div>
+            </div>
+
+            <div class="rows">
+              <div class="row strong"><div class="l">Net</div><div class="r" id="netOut">RM 0.00</div></div>
+              <div class="row"><div class="l">Fee (before SST)</div><div class="r" id="scOut">RM 0.00</div></div>
+              <div class="row"><div class="l">SST (8%)</div><div class="r" id="sstOut">RM 0.00</div></div>
+              <div class="row"><div class="l">Total Fee</div><div class="r" id="feeOut">RM 0.00</div></div>
+            </div>
+          </div>
+        </div>
+
+        <label>1) Amount</label>
+        <div class="field">
+          <span class="prefix">RM</span>
+          <input id="gross" inputmode="decimal" autocomplete="off" placeholder="10000" />
+        </div>
+
+        <label>2) Mode</label>
+        <div class="seg" role="tablist" aria-label="Mode">
+          <button type="button" id="btnCash">Cash</button>
+          <button type="button" id="btnEPF" class="active">EPF</button>
+          <button type="button" id="btnPRS">PRS</button>
+        </div>
+        <input type="hidden" id="mode" value="epf" />
+
+        <label>3) Charge %</label>
+        <div class="field tapField" id="chargeField" role="button" aria-label="Charge percent">
+          <div class="tapValue" id="chargeValue">3.0</div>
+          <span class="prefix">%</span>
+          <span class="chev">▾</span>
+          <!-- keep a hidden select for semantic value (logic unchanged) -->
+          <select id="charge" aria-hidden="true" tabindex="-1" style="position:absolute; left:-9999px; width:1px; height:1px; opacity:0;"></select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- iOS picker sheet -->
+  <div class="sheetMask" id="sheetMask" aria-hidden="true"></div>
+  <div class="sheet" id="sheet" aria-hidden="true">
+    <div class="sheetInner">
+      <div class="grab"></div>
+      <div class="sheetTop">
+        <div class="sheetTitle">Select Charge %</div>
+        <button class="sheetBtn" id="doneBtn" type="button">Done</button>
+      </div>
+      <div class="sheetList" id="sheetList"></div>
+    </div>
+  </div>
+
+<script>
+  const SST = 0.08;
+
+  // dropdown values: 1.5, 2.0, 2.5 ... 5.5
+  const CHARGE_OPTIONS = [];
+  for (let x = 1.5; x <= 5.5001; x += 0.5) CHARGE_OPTIONS.push(Number(x.toFixed(1)));
+
+  const CASH_TIERS = [
+    { sc: 5.5, psc: 3.00 },
+    { sc: 5.0, psc: 2.80 },
+    { sc: 4.5, psc: 2.40 },
+    { sc: 4.0, psc: 2.20 },
+    { sc: 3.5, psc: 2.00 },
+    { sc: 3.0, psc: 1.90 },
+    { sc: 2.5, psc: 1.40 },
+    { sc: 2.0, psc: 0.90 },
+    { sc: 1.5, psc: 0.60 },
+  ];
+
+  const EPF_TIERS = [
+    { sc: 3.0, psc: 2.20 },
+    { sc: 1.5, psc: 0.80 },
+  ];
+
+  const PRS_TIER = { sc: 1.5, psc: 0.90 };
+
+  const el = (id)=>document.getElementById(id);
+
+  const header = el("header");
+  const hero = el("hero");
+  const chipTag = el("chipTag");
+
+  const grossEl = el("gross");
+  const modeEl = el("mode");
+  const chargeEl = el("charge");
+  const chargeField = el("chargeField");
+  const chargeValue = el("chargeValue");
+
+  const commBig = el("commBig");
+  const netPill = el("netPill");
+  const netOut = el("netOut");
+  const scOut = el("scOut");
+  const sstOut = el("sstOut");
+  const feeOut = el("feeOut");
+  const rateTag = el("rateTag");
+  const pscTag = el("pscTag");
+
+  const btnCash = el("btnCash");
+  const btnEPF = el("btnEPF");
+  const btnPRS = el("btnPRS");
+
+  // sheet
+  const sheetMask = el("sheetMask");
+  const sheet = el("sheet");
+  const sheetList = el("sheetList");
+  const doneBtn = el("doneBtn");
+
+  function fmtRM(x){
+    if (!isFinite(x)) return "RM 0.00";
+    return "RM " + x.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+  }
+  function parseNumber(s){
+    if (!s) return 0;
+    const cleaned = String(s).replace(/,/g,'').replace(/[^\d.]/g,'');
+    const n = parseFloat(cleaned);
+    return isFinite(n) ? n : 0;
+  }
+
+
+  function getChargePct(){
+    // robust default: if select value is empty/unset, fall back to 3.0
+    const raw = (chargeEl && typeof chargeEl.value === "string") ? chargeEl.value : "";
+    const v = parseFloat(raw);
+    if (isFinite(v) && v > 0) return v;
+    return 3.0;
+  }
+
+  function setSegment(mode){
+    modeEl.value = mode;
+    btnCash.classList.toggle("active", mode === "cash");
+    btnEPF.classList.toggle("active", mode === "epf");
+    btnPRS.classList.toggle("active", mode === "prs");
+    syncChargeLock();
+    calc(true);
+  }
+
+  function nearestTier(scInput, tiers){
+    let best = tiers[0];
+    let bestDiff = Math.abs(scInput - best.sc);
+    for (const t of tiers){
+      const d = Math.abs(scInput - t.sc);
+      if (d < bestDiff){ best = t; bestDiff = d; }
+    }
+    return best;
+  }
+
+  function populateCharges(){
+    chargeEl.innerHTML = "";
+    for (const v of CHARGE_OPTIONS){
+      const opt = document.createElement("option");
+      opt.value = String(v);
+      opt.textContent = v.toFixed(1);
+      chargeEl.appendChild(opt);
+    }
+    chargeEl.value = "3.0";
+    // Some mobile browsers may not keep value if select is off-screen; enforce fallback.
+    if (!chargeEl.value) chargeEl.value = String(CHARGE_OPTIONS[3] || 3.0);
+    chargeValue.textContent = getChargePct().toFixed(1);
+  }
+
+  function syncChargeLock(){
+    const mode = modeEl.value;
+    if (mode === "prs"){
+      chargeEl.value = "1.5";
+      chargeValue.textContent = "1.5";
+      chargeField.classList.add("disabled");
+    } else {
+      chargeField.classList.remove("disabled");
+      // keep current
+      chargeValue.textContent = getChargePct().toFixed(1);
+    }
+    chipTag.textContent = `${mode.toUpperCase()} • ${getChargePct().toFixed(1)}%`;
+    renderSheetSelection();
+  }
+
+  function flashHero(){
+    hero.classList.remove("flash");
+    void hero.offsetWidth;
+    hero.classList.add("flash");
+  }
+
+  // ---- Smooth number transitions (subtle) ----
+  const state = {
+    comm: 0, net: 0, netOut: 0, feeBase: 0, sst: 0, feeTotal: 0,
+    anim: null
+  };
+
+  function tweenTo(next, onUpdate){
+    const start = performance.now();
+    const from = {...state};
+    const dur = 180;
+    if (state.anim) cancelAnimationFrame(state.anim);
+
+    function step(now){
+      const t = Math.min(1, (now - start) / dur);
+      // easeOutCubic
+      const e = 1 - Math.pow(1 - t, 3);
+
+      state.comm = from.comm + (next.comm - from.comm) * e;
+      state.net = from.net + (next.net - from.net) * e;
+      state.feeBase = from.feeBase + (next.feeBase - from.feeBase) * e;
+      state.sst = from.sst + (next.sst - from.sst) * e;
+      state.feeTotal = from.feeTotal + (next.feeTotal - from.feeTotal) * e;
+
+      onUpdate();
+
+      if (t < 1) state.anim = requestAnimationFrame(step);
+      else state.anim = null;
+    }
+    state.anim = requestAnimationFrame(step);
+  }
+
+  function renderNumbers(){
+    commBig.textContent = fmtRM(state.comm);
+    netPill.textContent = fmtRM(state.net);
+    netOut.textContent = fmtRM(state.net);
+    scOut.textContent = fmtRM(state.feeBase);
+    sstOut.textContent = fmtRM(state.sst);
+    feeOut.textContent = fmtRM(state.feeTotal);
+  }
+
+  function calc(doFlash=false, allowAnimate=true){
+    const gross = parseNumber(grossEl.value);
+    const mode = modeEl.value;
+    const scPctInput = getChargePct();
+
+    if (gross <= 0 || scPctInput <= 0){
+      state.comm = 0; state.net = 0; state.feeBase = 0; state.sst = 0; state.feeTotal = 0;
+      renderNumbers();
+      rateTag.textContent = "—";
+      pscTag.textContent = "PSC —";
+      return;
+    }
+
+    const sc = scPctInput / 100;
+    const factor = 1 + sc * (1 + SST);
+    const net = gross / factor;
+
+    const feeBase = net * sc;
+    const sstAmt = feeBase * SST;
+    const feeTotal = feeBase + sstAmt;
+
+    let pscPct = 0;
+    if (mode === "cash"){
+      pscPct = nearestTier(scPctInput, CASH_TIERS).psc;
+    } else if (mode === "epf"){
+      pscPct = nearestTier(scPctInput, EPF_TIERS).psc;
+    } else {
+      pscPct = PRS_TIER.psc;
+    }
+
+    const commission = net * (pscPct / 100);
+
+    rateTag.textContent = `${mode.toUpperCase()} • Charge ${scPctInput.toFixed(1)}%`;
+    pscTag.textContent = `PSC ${pscPct.toFixed(2)}%`;
+    chipTag.textContent = `${mode.toUpperCase()} • ${scPctInput.toFixed(1)}%`;
+
+    const next = { comm: commission, net, feeBase, sst: sstAmt, feeTotal };
+
+    if (allowAnimate){
+      tweenTo(next, renderNumbers);
+    } else {
+      state.comm = commission; state.net = net; state.feeBase = feeBase; state.sst = sstAmt; state.feeTotal = feeTotal;
+      renderNumbers();
+    }
+
+    if (doFlash) flashHero();
+  }
+
+  // Amount formatting: display-only separators
+  let fmtTimer = null;
+  function formatAmountDisplay(){
+    const n = parseNumber(grossEl.value);
+    if (n <= 0) return;
+    grossEl.value = n.toLocaleString(undefined, {maximumFractionDigits: 2});
+  }
+
+  grossEl.addEventListener("input", ()=>{
+    // no flash while typing, but keep subtle number tween
+    calc(false, true);
+    if (fmtTimer) clearTimeout(fmtTimer);
+    fmtTimer = setTimeout(()=>formatAmountDisplay(), 450);
+  });
+  grossEl.addEventListener("blur", ()=>{
+    formatAmountDisplay();
+    // flash once when leaving field
+    calc(true, true);
+  });
+
+  // ---- Charge picker sheet (UI only) ----
+  function openSheet(){
+    if (modeEl.value === "prs") return; // locked
+    sheetMask.classList.add("show");
+    sheet.classList.add("show");
+    sheetMask.setAttribute("aria-hidden","false");
+    sheet.setAttribute("aria-hidden","false");
+  }
+  function closeSheet(){
+    sheetMask.classList.remove("show");
+    sheet.classList.remove("show");
+    sheetMask.setAttribute("aria-hidden","true");
+    sheet.setAttribute("aria-hidden","true");
+  }
+
+  function renderSheet(){
+    sheetList.innerHTML = "";
+    const current = getChargePct();
+    for (const v of CHARGE_OPTIONS){
+      const row = document.createElement("div");
+      row.className = "opt" + (Math.abs(v-current) < 0.0001 ? " selected" : "");
+      row.dataset.value = v.toFixed(1);
+      row.innerHTML = `<span>${v.toFixed(1)}<small>%</small></span><span class="check">✓</span>`;
+      row.addEventListener("click", ()=>{
+        chargeEl.value = v.toFixed(1);
+        chargeValue.textContent = v.toFixed(1);
+        renderSheetSelection();
+        syncChargeLock();
+        closeSheet();
+        // flash on deliberate selection
+        calc(true, true);
+      });
+      sheetList.appendChild(row);
+    }
+  }
+
+  function renderSheetSelection(){
+    const current = getChargePct().toFixed(1);
+    const nodes = sheetList.querySelectorAll(".opt");
+    nodes.forEach(n=>{
+      n.classList.toggle("selected", n.dataset.value === current);
+    });
+  }
+
+  chargeField.addEventListener("click", ()=>{
+    if (chargeField.classList.contains("disabled")) return;
+    openSheet();
+  });
+  sheetMask.addEventListener("click", closeSheet);
+  doneBtn.addEventListener("click", closeSheet);
+
+  // Segmented actions
+  btnCash.addEventListener("click", ()=>setSegment("cash"));
+  btnEPF.addEventListener("click", ()=>setSegment("epf"));
+  btnPRS.addEventListener("click", ()=>setSegment("prs"));
+
+  // Compact header on scroll
+  let lastCompact = false;
+  function onScroll(){
+    const compact = window.scrollY > 18;
+    if (compact !== lastCompact){
+      header.classList.toggle("compact", compact);
+      lastCompact = compact;
+    }
+  }
+  window.addEventListener("scroll", onScroll, {passive:true});
+
+  // init
+  populateCharges();
+  renderSheet();
+  syncChargeLock();
+  calc(false, false); // initial render no animation
+</script>
+</body>
+</html>
