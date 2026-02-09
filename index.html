@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Commission Calculator</title>
+  <title>KAM Calculator</title>
   <style>
     :root{
       --bg:#0b1020;
@@ -22,15 +22,13 @@
       --radius2:16px;
     }
     *{box-sizing:border-box}
-    html,body{height:100%}
+    html,body{
+      -webkit-tap-highlight-color: rgba(0,0,0,0);
+height:100%}
     body{
       margin:0;
       font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
-      background:
-        radial-gradient(1200px 600px at 18% -10%, rgba(120,170,255,0.20), transparent 60%),
-        radial-gradient(900px 500px at 92% 0%, rgba(120,255,210,0.10), transparent 55%),
-        radial-gradient(700px 600px at 50% 120%, rgba(255,190,120,0.06), transparent 55%),
-        var(--bg);
+      background: radial-gradient(1200px 820px at 50% -10%, rgba(46, 98, 255, 0.12) 0%, rgba(11, 16, 32, 0) 55%), linear-gradient(180deg, #0b1020 0%, #070b16 70%, #050814 100%);
       color:var(--text);
       padding: calc(14px + env(safe-area-inset-top)) 14px calc(20px + env(safe-area-inset-bottom)) 14px;
       -webkit-font-smoothing: antialiased;
@@ -134,7 +132,9 @@
       line-height:1.03;
       color: rgba(255,255,255,0.94);
       font-variant-numeric: tabular-nums;
+      transition: transform 220ms ease, opacity 220ms ease;
     }
+    .amount.bump{ transform: translateY(-1px); opacity: 0.98; }
     @media (max-width: 380px){ .amount{font-size: 40px} }
 
     .subpill{
@@ -162,7 +162,9 @@
       color: var(--good);
       font-weight: 950;
       font-variant-numeric: tabular-nums;
+      transition: transform 220ms ease, opacity 220ms ease;
     }
+    .amount.bump{ transform: translateY(-1px); opacity: 0.98; }
     .miniTag{
       color: rgba(255,255,255,0.68);
       font-weight: 900;
@@ -173,7 +175,9 @@
       border-radius: 999px;
       white-space:nowrap;
       font-variant-numeric: tabular-nums;
+      transition: transform 220ms ease, opacity 220ms ease;
     }
+    .amount.bump{ transform: translateY(-1px); opacity: 0.98; }
 
     label{
       display:block;
@@ -218,7 +222,9 @@
       font-size: 16px;
       font-weight: 900;
       font-variant-numeric: tabular-nums;
+      transition: transform 220ms ease, opacity 220ms ease;
     }
+    .amount.bump{ transform: translateY(-1px); opacity: 0.98; }
     select{ appearance:none; }
     .chev{ opacity:0.60; font-size:12px; user-select:none; }
 
@@ -283,7 +289,9 @@
       text-align:right;
       white-space:nowrap;
       font-variant-numeric: tabular-nums;
+      transition: transform 220ms ease, opacity 220ms ease;
     }
+    .amount.bump{ transform: translateY(-1px); opacity: 0.98; }
     .row.strong .l{ color: var(--muted); }
     .row.strong .r{
       font-size: 14px;
@@ -390,7 +398,9 @@
       cursor:pointer;
       user-select:none;
       font-variant-numeric: tabular-nums;
+      transition: transform 220ms ease, opacity 220ms ease;
     }
+    .amount.bump{ transform: translateY(-1px); opacity: 0.98; }
     .opt:last-child{border-bottom:none}
     .opt small{
       color: rgba(255,255,255,0.62);
@@ -410,6 +420,8 @@
 
     /* Charge field becomes tappable button */
     .tapField{
+      touch-action: manipulation;
+
       cursor:pointer;
       user-select:none;
     }
@@ -418,18 +430,351 @@
       font-size: 16px;
       font-weight: 950;
       font-variant-numeric: tabular-nums;
+      transition: transform 220ms ease, opacity 220ms ease;
     }
+    .amount.bump{ transform: translateY(-1px); opacity: 0.98; }
     .disabled{
       opacity: 0.70;
       cursor:not-allowed;
     }
+  
+    /* Hairline + depth */
+    .header::after{
+      content:"";
+      position:absolute;
+      left:14px; right:14px; bottom:0;
+      height:1px;
+      background: rgba(255,255,255,0.10);
+      transform: scaleY(0.5);
+      transform-origin: bottom;
+      pointer-events:none;
+    }
+    .header.compact{
+      box-shadow: 0 10px 26px rgba(0,0,0,0.32);
+    }
+
+    /* Premium focus states */
+    .field:focus-within{
+      border-color: rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.06);
+      box-shadow: 0 10px 22px rgba(0,0,0,0.22), 0 0 0 1px rgba(255,255,255,0.06) inset;
+    }
+    input::placeholder{
+      color: rgba(255,255,255,0.35);
+      font-weight: 850;
+    }
+
+    /* Sheet highlight + better Done button */
+    .sheetBtn{
+      background: rgba(180,255,210,0.14);
+      border-color: rgba(180,255,210,0.22);
+      color: rgba(255,255,255,0.92);
+    }
+    .opt.selected{
+      background: rgba(180,255,210,0.06);
+    }
+
+    /* App-like open animation */
+    .appFade{
+      animation: appFade 320ms ease both;
+    }
+    @keyframes appFade{
+      from{ opacity:0; transform: translateY(6px) scale(0.995); filter: blur(2px); }
+      to{ opacity:1; transform: translateY(0) scale(1); filter: blur(0); }
+    }
+    .splash{
+      position: fixed;
+      inset: 0;
+      z-index: 5;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background: #0b1020;
+      opacity: 1;
+      transition: opacity 360ms ease;
+      pointer-events:none;
+      animation: splashOut 420ms ease forwards;
+      animation-delay: 140ms;
+    }
+    @keyframes splashOut{
+      0%{ opacity:1; }
+      100%{ opacity:0; visibility:hidden; }
+    }
+    .splash.hide{ opacity:0; }
+    .splashInner{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:12px;
+      transform: translateY(-4px);
+    }
+    .splashIcon{
+      width:72px; height:72px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      overflow:hidden;
+      box-shadow: 0 18px 50px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.06) inset;
+    }
+    .splashIcon img{ width: 72px; height: 72px; object-fit: cover; }
+    .splashName{
+      font-weight: 950;
+      letter-spacing: 0.2px;
+      color: rgba(255,255,255,0.90);
+      font-size: 16px;
+    }
+    .splashTag{
+      font-weight: 900;
+      letter-spacing: 0.18px;
+      color: rgba(255,255,255,0.55);
+      font-size: 12px;
+      margin-top:-6px;
+    }
+
+  
+    /* Collapsible details */
+    .detailsToggle{
+      margin-top: 12px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding: 10px 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(255,255,255,0.035);
+      color: rgba(255,255,255,0.76);
+      font-weight: 950;
+      font-size: 13px;
+      letter-spacing: 0.18px;
+      cursor: pointer;
+      user-select:none;
+      touch-action: manipulation;
+    }
+    .detailsToggle .hint{
+      color: rgba(255,255,255,0.50);
+      font-weight: 900;
+      font-size: 12px;
+    }
+    .detailsToggle .chev2{
+      opacity: 0.7;
+      transition: transform .18s ease;
+      font-size: 12px;
+    }
+    .hero .rows{
+      max-height: 0;
+      overflow: hidden;
+      opacity: 0;
+      transform: translateY(-2px);
+      transition: max-height .24s ease, opacity .20s ease, transform .20s ease;
+      margin-top: 0;
+      border-top: 0;
+      padding-top: 0;
+    }
+    .hero.open .rows{
+      max-height: 360px;
+      opacity: 1;
+      transform: translateY(0);
+      margin-top: 12px;
+      border-top: 1px solid rgba(255,255,255,0.07);
+      padding-top: 6px;
+    }
+    .hero.open .detailsToggle .chev2{ transform: rotate(180deg); }
+
+  
+    .bottomPanel{
+      position: sticky;
+      bottom: calc(10px + env(safe-area-inset-bottom));
+      z-index: 25;
+      padding: 12px;
+      border-radius: 22px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04));
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      box-shadow: 0 22px 70px rgba(0,0,0,0.55);
+    }
+    .content{
+      padding-bottom: 10px;
+    }
+
+  
+    .card{
+      box-shadow: 0 22px 70px rgba(0,0,0,0.55);
+    }
+    .card::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      border-radius: var(--radius);
+      pointer-events:none;
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.05) inset, 0 1px 0 rgba(255,255,255,0.06) inset;
+    }
+    .hero{
+      box-shadow: 0 14px 40px rgba(0,0,0,0.40);
+    }
+    .field{
+      box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset;
+    }
+
+  
+    .seg{
+      position: relative;
+    }
+    .seg::before{
+      content:"";
+      position:absolute;
+      top: 6px; bottom: 6px;
+      left: 6px;
+      width: calc((100% - 12px - 12px) / 3); /* 3 segments, 2 gaps of 6px each => 12px */
+      border-radius: 999px;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow: var(--shadowSoft);
+      transform: translateX(0);
+      transition: transform .22s ease;
+      pointer-events:none;
+    }
+    .seg[data-active="1"]::before{ transform: translateX(calc(100% + 6px)); }
+    .seg[data-active="2"]::before{ transform: translateX(calc((100% + 6px) * 2)); }
+    /* keep buttons above indicator */
+    .seg button{ position: relative; z-index: 1; }
+    .seg button.active{ background: transparent; border: none; box-shadow:none; color: rgba(255,255,255,0.94); }
+
+  
+    .delta-up{ color: #b9ffd3 !important; }
+    .delta-down{ color: #ffb9b9 !important; }
+
+  
+    .pickerHint{
+      font-size:12px;
+      font-weight:900;
+      color: rgba(255,255,255,0.7);
+      padding: 6px 14px 0;
+    }
+
+  
+    .segHint{
+      margin-top:6px;
+      font-size:11px;
+      font-weight:900;
+      color: rgba(255,255,255,0.55);
+      letter-spacing:0.18px;
+      text-align:center;
+    }
+
+  
+    .seg button{ pointer-events:auto; }
+
+  
+    /* iOS typography refinements */
+    .amount{
+      letter-spacing: -0.6px;
+      line-height: 1.02;
+      text-rendering: geometricPrecision;
+    }
+    .pill{
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.1px;
+    }
+    .rows .v{
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0;
+    }
+    .prefix{
+      opacity: 0.72;
+    }
+
+  
+    .bottomPanel{
+      background: linear-gradient(180deg, rgba(255,255,255,0.075), rgba(255,255,255,0.035));
+      border-color: rgba(255,255,255,0.11);
+    }
+    .bottomPanel::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      border-radius: 22px;
+      pointer-events:none;
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.045) inset;
+    }
+    label{
+      letter-spacing: 0.14px;
+    }
+    .field{
+      border-color: rgba(255,255,255,0.10);
+    }
+    .field + label{ margin-top: 14px; }
+
+  
+    .seg::before{
+      background: rgba(255,255,255,0.11);
+      border-color: rgba(255,255,255,0.12);
+      box-shadow: 0 14px 40px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.05) inset;
+    }
+    .seg button{
+      color: rgba(255,255,255,0.62);
+    }
+
+  
+    /* Picker list selection styling (no default blue bar) */
+    .opt{
+      border-radius: 12px;
+      margin: 2px 10px;
+      padding: 10px 12px;
+    }
+    .opt.selected{
+      background: rgba(180,255,210,0.10);
+      border: 1px solid rgba(180,255,210,0.18);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.28), 0 0 0 1px rgba(255,255,255,0.04) inset;
+    }
+    .opt .check{
+      color: rgba(180,255,210,0.95);
+      font-weight: 950;
+    }
+    .opt:active{
+      background: rgba(255,255,255,0.06);
+    }
+
+  
+    .nativeCharge{ pointer-events: auto; }
+    .nativeCharge.ios{ pointer-events: auto; }
+
   </style>
+
+  <!-- PWA / iOS Home Screen -->
+  <link rel="manifest" href="manifest.json">
+
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
+
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="KAM Calculator">
+  <meta name="theme-color" content="#0b1020">
+
 </head>
 <body>
-  <div class="wrap">
+
+  <div class="splash" id="splash" aria-hidden="true">
+    <div class="splashInner">
+      <div class="splashIcon">
+        <img src="data:image/png;base64,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" alt="" />
+      </div>
+      <div class="splashName">KAM Calculator</div>
+      <div class="splashTag">Commission • iOS</div>
+    </div>
+  </div>
+
+  <div class="wrap appFade">
     <div class="card">
       <div class="header" id="header">
-        <div class="title">Commission Calculator</div>
+        <div class="title">KAM Calculator</div>
         <div class="chip" id="chipTag">EPF • 3.0%</div>
       </div>
 
@@ -447,6 +792,12 @@
               <div class="miniTag" id="pscTag">PSC —</div>
             </div>
 
+
+            <div class="detailsToggle" id="detailsBtn" role="button" aria-expanded="false">
+              <div>Details <span class="hint">(Net / Fee / SST)</span></div>
+              <div class="chev2">⌄</div>
+            </div>
+
             <div class="rows">
               <div class="row strong"><div class="l">Net</div><div class="r" id="netOut">RM 0.00</div></div>
               <div class="row"><div class="l">Fee (before SST)</div><div class="r" id="scOut">RM 0.00</div></div>
@@ -456,6 +807,7 @@
           </div>
         </div>
 
+        <div class="bottomPanel">
         <label>1) Amount</label>
         <div class="field">
           <span class="prefix">RM</span>
@@ -463,11 +815,12 @@
         </div>
 
         <label>2) Mode</label>
-        <div class="seg" role="tablist" aria-label="Mode">
+        <div class="seg" id="seg" data-active="1" role="tablist" aria-label="Mode">
           <button type="button" id="btnCash">Cash</button>
           <button type="button" id="btnEPF" class="active">EPF</button>
           <button type="button" id="btnPRS">PRS</button>
         </div>
+        <div class="segHint" id="segHint">KAM +0.60</div>
         <input type="hidden" id="mode" value="epf" />
 
         <label>3) Charge %</label>
@@ -476,8 +829,9 @@
           <span class="prefix">%</span>
           <span class="chev">▾</span>
           <!-- keep a hidden select for semantic value (logic unchanged) -->
-          <select id="charge" aria-hidden="true" tabindex="-1" style="position:absolute; left:-9999px; width:1px; height:1px; opacity:0;"></select>
+          <select id="charge" class="nativeCharge"  style="position:absolute; inset:0; width:100%; height:100%; opacity:0; appearance:none; -webkit-appearance:none; border:none; background:transparent; cursor:pointer; z-index:5;"></select>
         </div>
+      </div>
       </div>
     </div>
   </div>
@@ -530,6 +884,19 @@
   const grossEl = el("gross");
   const modeEl = el("mode");
   const chargeEl = el("charge");
+
+  const isIOS = (() => {
+    const ua = navigator.userAgent || "";
+    const iOS = /iPad|iPhone|iPod/.test(ua);
+    const iPadOS = (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    return iOS || iPadOS;
+  })();
+
+  // Use native wheel picker on iOS; custom sheet elsewhere (prevents desktop blue dropdown)
+  if (chargeEl){
+    if (isIOS) chargeEl.classList.add("ios");
+  }
+
   const chargeField = el("chargeField");
   const chargeValue = el("chargeValue");
 
@@ -545,6 +912,10 @@
   const btnCash = el("btnCash");
   const btnEPF = el("btnEPF");
   const btnPRS = el("btnPRS");
+
+  const detailsBtn = el("detailsBtn");
+  const seg = el("seg");
+  const segHint = el("segHint");
 
   // sheet
   const sheetMask = el("sheetMask");
@@ -573,12 +944,17 @@
   }
 
   function setSegment(mode){
+    if (segHint){ segHint.textContent = (mode==="epf") ? "KAM +0.60" : (mode==="cash") ? "KAM +0.30" : "Normal"; }
+    const idx = (mode==="cash") ? 0 : (mode==="epf") ? 1 : 2;
+    if (seg) seg.dataset.active = String(idx);
+
     modeEl.value = mode;
     btnCash.classList.toggle("active", mode === "cash");
     btnEPF.classList.toggle("active", mode === "epf");
     btnPRS.classList.toggle("active", mode === "prs");
     syncChargeLock();
     calc(true);
+    haptic(10);
   }
 
   function nearestTier(scInput, tiers){
@@ -635,13 +1011,23 @@
   function tweenTo(next, onUpdate){
     const start = performance.now();
     const from = {...state};
-    const dur = 180;
+    const dur = 260;
     if (state.anim) cancelAnimationFrame(state.anim);
+    // subtle iOS-like visual bump
+    commBig.classList.add('bump');
 
     function step(now){
       const t = Math.min(1, (now - start) / dur);
       // easeOutCubic
-      const e = 1 - Math.pow(1 - t, 3);
+      // Premium easing: smooth + tiny iOS-like settle
+      // base easeOutQuint
+      let e = 1 - Math.pow(1 - t, 5);
+      // add a subtle overshoot near the end (very small)
+      if (t > 0.78){
+        const u = (t - 0.78) / 0.22; // 0..1
+        const overshoot = 0.008 * Math.sin(u * Math.PI); // peak at mid
+        e = Math.min(1.02, e + overshoot);
+      }
 
       state.comm = from.comm + (next.comm - from.comm) * e;
       state.net = from.net + (next.net - from.net) * e;
@@ -652,7 +1038,7 @@
       onUpdate();
 
       if (t < 1) state.anim = requestAnimationFrame(step);
-      else state.anim = null;
+      else { state.anim = null; state.lastValue = to; setTimeout(()=>{ el.classList.remove('delta-up','delta-down'); commBig.classList.remove('bump'); }, 120); }
     }
     state.anim = requestAnimationFrame(step);
   }
@@ -688,12 +1074,21 @@
     const feeTotal = feeBase + sstAmt;
 
     let pscPct = 0;
+    let basePscPct = 0;
     if (mode === "cash"){
       pscPct = nearestTier(scPctInput, CASH_TIERS).psc;
     } else if (mode === "epf"){
       pscPct = nearestTier(scPctInput, EPF_TIERS).psc;
     } else {
       pscPct = PRS_TIER.psc;
+    }
+
+    basePscPct = pscPct;
+    // Fixed overriding rules (confirmed)
+    if (mode === "epf") {
+      pscPct = basePscPct + 0.60;
+    } else if (mode === "cash") {
+      pscPct = basePscPct + 0.30;
     }
 
     const commission = net * (pscPct / 100);
@@ -734,8 +1129,20 @@
     calc(true, true);
   });
 
+  // Charge change (native iOS picker)
+  chargeEl.addEventListener("change", ()=>{
+    syncChargeLock();
+    calc(true, true);
+    try{ if (navigator.vibrate) navigator.vibrate(10); }catch(e){}
+  });
+
+
+  
+
+
   // ---- Charge picker sheet (UI only) ----
   function openSheet(){
+    haptic(8);
     if (modeEl.value === "prs") return; // locked
     sheetMask.classList.add("show");
     sheet.classList.add("show");
@@ -750,6 +1157,7 @@
   }
 
   function renderSheet(){
+    if (pickerHint) pickerHint.textContent = `Selected: ${getChargePct().toFixed(1)}%`;
     sheetList.innerHTML = "";
     const current = getChargePct();
     for (const v of CHARGE_OPTIONS){
@@ -765,6 +1173,7 @@
         closeSheet();
         // flash on deliberate selection
         calc(true, true);
+        haptic(10);
       });
       sheetList.appendChild(row);
     }
@@ -777,18 +1186,21 @@
       n.classList.toggle("selected", n.dataset.value === current);
     });
   }
-
-  chargeField.addEventListener("click", ()=>{
-    if (chargeField.classList.contains("disabled")) return;
-    openSheet();
-  });
   sheetMask.addEventListener("click", closeSheet);
   doneBtn.addEventListener("click", closeSheet);
 
   // Segmented actions
-  btnCash.addEventListener("click", ()=>setSegment("cash"));
-  btnEPF.addEventListener("click", ()=>setSegment("epf"));
-  btnPRS.addEventListener("click", ()=>setSegment("prs"));
+  function bindTap(el, fn){
+    if (!el) return;
+    el.addEventListener("click", fn);
+    el.addEventListener("pointerup", (e)=>{ e.preventDefault(); fn(); });
+    el.addEventListener("touchend", (e)=>{ e.preventDefault(); fn(); });
+  }
+
+  bindTap(btnCash, ()=>setSegment("cash"));
+
+  bindTap(btnEPF, ()=>setSegment("epf"));
+  bindTap(btnPRS, ()=>setSegment("prs"));
 
   // Compact header on scroll
   let lastCompact = false;
@@ -800,6 +1212,18 @@
     }
   }
   window.addEventListener("scroll", onScroll, {passive:true});
+
+
+  // Details expand/collapse
+  if (detailsBtn){
+    detailsBtn.addEventListener("click", ()=>{
+      const isOpen = hero.classList.toggle("open");
+      detailsBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+      try{ if (navigator.vibrate) navigator.vibrate(8); }catch(e){}
+    });
+    // default collapsed
+    hero.classList.remove("open");
+  }
 
   // init
   populateCharges();
